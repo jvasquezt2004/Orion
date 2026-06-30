@@ -1,0 +1,85 @@
+# ── Python / Backend ──────────────────────────────────────
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.venv/
+*.egg
+.eggs/
+develop-eggs/
+sdist/
+wheels/
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+celerybeat-schedule
+celerybeat.pid
+*.so
+
+# ── Node / Frontend ──────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+*.local
+.next/
+.nuxt/
+out/
+.turbo/
+
+# ── Logs ─────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── Environment & Secrets ────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Docker ───────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── Editors / OS ─────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── uv / ruff ────────────────────────────────────────────
+.python-version
+
+# ── Misc ─────────────────────────────────────────────────
+.atl/
+*.sqlite3
+*.db

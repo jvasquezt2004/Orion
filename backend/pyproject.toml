@@ -1,0 +1,19 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[standard]>=0.138.2",
+    "minio>=7.2.20",
+    "opencv-python>=4.13.0.92",
+    "python-dotenv>=1.2.2",
+    "taskiq>=0.12.4",
+    "taskiq-redis>=1.2.3",
+    "tortoise-orm[asyncpg]>=1.1.7",
+    "tzdata>=2026.2",
+]
+
+[tool.tortoise]
+tortoise_orm = "app.db.config.TORTOISE_ORM"
