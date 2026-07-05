@@ -80,3 +80,28 @@ async def test_process_file_task_inserts_reference(mongo, tmp_path):
     # cv2.imread will fail on our dummy file, so media should be UNKNOWN
     assert ref.media == MediaKind.UNKNOWN
     assert ref.is_processed is False
+
+
+async def test_uuid_pk_round_trips_through_bson(mongo):
+    """UUID primary key survives a full BSON encode/decode round-trip.
+
+    This was an open question (design OQ-3): pymongo's native UUID encoding
+    vs manual bson_encoders. Confirmed: no bson_encoders needed — the UUID
+    pk round-trips cleanly. User.get(UUID(sub)) is covered by test_auth's
+    test_me_valid_token.
+    """
+    ref = Reference(
+        type=ReferenceType.REFERENCE,
+        media=MediaKind.IMAGE,
+        original_name="uuid_test.jpg",
+        stored_name="uuid_test.jpg",
+        bucket="app-bucket",
+        object_path="uploads/uuid_test.jpg",
+    )
+    original_id = ref.id
+    await ref.insert()
+
+    retrieved = await Reference.get(original_id)
+    assert retrieved is not None
+    assert retrieved.id == original_id
+    assert isinstance(retrieved.id, type(original_id))
