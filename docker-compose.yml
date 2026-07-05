@@ -1,20 +1,27 @@
 services:
-  postgres:
-    image: pgvector/pgvector:pg17
-    container_name: postgres
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-app}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-app}
     ports:
-      - "5432:5432"
+      - "27017:27017"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mongo_data:/data/db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-app}"]
+      test: ["CMD", "mongosh", "--eval", "db.runCommand('ping').ok"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    profiles: ["dev"]
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017
 
   redis:
     image: redis:7-alpine
@@ -49,6 +56,6 @@ services:
       retries: 5
 
 volumes:
-  postgres_data:
+  mongo_data:
   redis_data:
   minio_data:

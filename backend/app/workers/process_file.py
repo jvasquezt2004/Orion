@@ -5,7 +5,8 @@ import asyncio
 from app.core.minio_client import minio_client
 from app.core.config import config
 import os
-from app.db.schema import Reference, MediaKind
+from app.db.reference import Reference, MediaKind, ReferenceType
+
 
 @broker.task
 async def process_file_task(temp_path: str, original_name: str):
@@ -46,15 +47,15 @@ async def process_file_task(temp_path: str, original_name: str):
                 content_type="application/octet-stream"
             )
 
-        await Reference.create(
+        await Reference(
             original_name=original_name,
             stored_name=stored_name,
             bucket=config.minio_bucket,
             object_path=object_path,
             is_processed=is_processed,
-            type="reference",
-            media=MediaKind.IMAGE if is_image else MediaKind.UNKNOWN
-        )
+            type=ReferenceType.REFERENCE,
+            media=MediaKind.IMAGE if is_image else MediaKind.UNKNOWN,
+        ).insert()
 
     finally:
         if os.path.exists(temp_path):

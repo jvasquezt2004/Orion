@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, HTTPException, File
+from fastapi import APIRouter, UploadFile, File
 import shutil
 from app.workers.process_file import process_file_task
 import os
@@ -7,7 +7,9 @@ import tempfile
 router = APIRouter()
 
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(
+    file: UploadFile = File(...),
+):
     suffix = os.path.splitext(file.filename)[1].lower() or ".bin"
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
