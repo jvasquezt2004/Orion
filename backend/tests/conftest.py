@@ -8,7 +8,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 # Set SECRET_KEY BEFORE any app import so pydantic-settings doesn't fail-fast.
-os.environ.setdefault("SECRET_KEY", "test-secret-key-for-slice-1")
+os.environ.setdefault("SECRET_KEY", "test-secret-key-at-least-32-bytes-long-for-hs256")
 
 import pytest
 from mongomock_motor import AsyncMongoMockClient
@@ -16,6 +16,8 @@ from beanie import init_beanie
 import httpx
 
 from app.models.reference import Reference
+from app.models.user import User
+from app.models.token import Token
 from main import app
 
 
@@ -27,7 +29,7 @@ async def mongo():
     Beanie initialization for the test suite.
 
     mongomock-motor 0.0.36 doesn't accept the authorizedCollections/nameOnly
-    kwargs that Beanie ≥2.1.0 passes to list_collection_names(). We monkey-patch
+    kwargs that Beanie >=2.1.0 passes to list_collection_names(). We monkey-patch
     the method to accept and ignore them.
     """
     client = AsyncMongoMockClient()
@@ -46,10 +48,12 @@ async def mongo():
 
     await init_beanie(
         database=db,
-        document_models=[Reference],
+        document_models=[Reference, User, Token],
     )
     yield
     await Reference.delete_all()
+    await User.delete_all()
+    await Token.delete_all()
 
 
 @pytest.fixture
@@ -60,3 +64,22 @@ async def client(mongo):
         base_url="http://test",
     ) as ac:
         yield ac
+
+
+@pytest.fixture
+async def auth_token(client):
+    """Register a test user and login. Returns (access_token, refresh_token)."""
+    email = "testuser@example.com"
+    password = "testpassword123"
+
+    # Register
+    await client.post("/api/auth/register", json={"email": email, "password": password})
+
+    # Login
+    response = await client.post(
+        "/api/auth/login",
+        data={"username": email, "password": password},
+    )
+    assert response.status_code == 200
+    tokens = response.json()
+    return tokens["access_token"], tokens["refresh_token"]

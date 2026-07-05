@@ -1,17 +1,20 @@
-"""Upload endpoint tests for Slice 1 state (unauthenticated).
+"""Upload endpoint tests — authenticated (Slice 2)."""
 
-Slice 2 will update this: unauthenticated → 401, authenticated → 200.
-"""
-
-import asyncio
 from unittest.mock import patch, AsyncMock
 
-import httpx
+
+async def test_unauthenticated_upload_returns_401(client):
+    """Upload without auth token → 401."""
+    response = await client.post(
+        "/api/upload",
+        files={"file": ("test.txt", b"hello world", "text/plain")},
+    )
+    assert response.status_code == 401
 
 
-async def test_unauthenticated_upload_returns_200(client):
-    """In Slice 1, the upload endpoint has no auth — unauthenticated upload → 200."""
-    # Slice 2 will update this: unauthenticated → 401, authenticated → 200
+async def test_authenticated_upload_returns_200(client, auth_token):
+    """Upload with valid Bearer token → 200."""
+    access_token, _ = auth_token
     mock_task_result = type("TaskResult", (), {"task_id": "test-task-123"})()
 
     with patch("app.api.upload.process_file_task") as mock_task:
@@ -20,6 +23,7 @@ async def test_unauthenticated_upload_returns_200(client):
         response = await client.post(
             "/api/upload",
             files={"file": ("test.txt", b"hello world", "text/plain")},
+            headers={"Authorization": f"Bearer {access_token}"},
         )
 
     assert response.status_code == 200

@@ -5,6 +5,7 @@ from app.core.config import config
 from app.core.database import init_beanie_app
 from app.core.logging import setup_logging
 from app.api.upload import router as upload_router
+from app.api.auth import router as auth_router
 
 
 @asynccontextmanager
@@ -20,4 +21,5 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.include_router(auth_router, prefix="/api")
 app.include_router(upload_router, prefix="/api")

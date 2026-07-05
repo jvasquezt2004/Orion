@@ -3,9 +3,6 @@
 Uses string paths for document_models to break the import cycle:
 models import beanie.Document; this module would import models;
 string paths let Beanie resolve them lazily.
-
-In Slice 2, this list will be extended with "app.models.user" and
-"app.models.token" — do NOT add them now.
 """
 
 from pymongo import AsyncMongoClient
@@ -20,6 +17,10 @@ async def init_beanie_app(mongo_uri: str, mongo_db: str) -> AsyncMongoClient:
     client = AsyncMongoClient(mongo_uri)
     await init_beanie(
         database=client[mongo_db],
-        document_models=["app.models.reference"],
+        document_models=[
+            "app.models.reference",
+            "app.models.user",
+            "app.models.token",
+        ],
     )
     return client
