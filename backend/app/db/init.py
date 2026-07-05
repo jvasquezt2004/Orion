@@ -1,12 +1,13 @@
 """Shared Beanie initialization helper.
 
-Uses string paths for document_models to break the import cycle:
-models import beanie.Document; this module would import models;
-string paths let Beanie resolve them lazily.
+Used by both the FastAPI lifespan and the Taskiq worker startup
+to initialize Beanie with the same set of Document models.
 """
 
 from pymongo import AsyncMongoClient
 from beanie import init_beanie
+
+from app.db.reference import Reference
 
 
 async def init_beanie_app(mongo_uri: str, mongo_db: str) -> AsyncMongoClient:
@@ -17,8 +18,6 @@ async def init_beanie_app(mongo_uri: str, mongo_db: str) -> AsyncMongoClient:
     client = AsyncMongoClient(mongo_uri)
     await init_beanie(
         database=client[mongo_db],
-        document_models=[
-            "app.db.reference",
-        ],
+        document_models=[Reference],
     )
     return client

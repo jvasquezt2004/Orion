@@ -12,7 +12,7 @@ async def lifespan(app: FastAPI):
     setup_logging()
     client = await init_beanie_app(config.mongo_uri, config.mongo_db)
     yield
-    client.close()
+    await client.close()
 
 
 app = FastAPI(

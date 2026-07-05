@@ -17,7 +17,7 @@ async def startup(state: Context) -> None:
 @broker.on_event(TaskiqEvents.WORKER_SHUTDOWN)
 async def shutdown(state: Context) -> None:
     if state.mongo_client:
-        state.mongo_client.close()
+        await state.mongo_client.close()
 
 
 from app.workers import process_file
