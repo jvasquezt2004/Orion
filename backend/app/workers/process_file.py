@@ -1,11 +1,14 @@
-from app.workers.config import broker
-import cv2
-from uuid import uuid4
 import asyncio
-from app.core.minio_client import minio_client
-from app.core.config import config
 import os
-from app.db.reference import Reference, MediaKind, ReferenceType
+from uuid import uuid4
+
+import cv2
+
+from app.core.config import config
+from app.core.minio_client import minio_client
+from app.db.reference import MediaKind, Reference, ReferenceType
+from app.services.image_services import ImageServices
+from app.workers.config import broker
 
 
 @broker.task
@@ -22,18 +25,20 @@ async def process_file_task(temp_path: str, original_name: str):
         if img is not None:
             is_image = True
 
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            edges = cv2.Canny(gray, threshold1=100, threshold2=200)
+            image_pipeline = ImageServices(
+                temp_path, original_name, stored_name, object_path
+            )
 
-            processed_path = f"{temp_path}_canny.png"
-            cv2.imwrite(processed_path, edges)
+            await image_pipeline()
+
+            processed_path = f"{temp_path}_analyzed.png"
 
             await asyncio.to_thread(
                 minio_client.fput_object,
                 config.minio_bucket,
                 object_path,
                 processed_path,
-                content_type="image/png"
+                content_type="image/png",
             )
 
             os.remove(processed_path)
@@ -44,7 +49,7 @@ async def process_file_task(temp_path: str, original_name: str):
                 config.minio_bucket,
                 object_path,
                 temp_path,
-                content_type="application/octet-stream"
+                content_type="application/octet-stream",
             )
 
         await Reference(

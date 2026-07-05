@@ -1,12 +1,14 @@
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID, uuid4
 
 import pymongo
-from pymongo import IndexModel
-from pydantic import Field
 from beanie import Document
+from pydantic import Field
+from pymongo import IndexModel
+
+from app.models.image_models import RGB, ImageAnalysis, OkLab
 
 
 class ReferenceType(str, Enum):
@@ -24,8 +26,18 @@ class MediaKind(str, Enum):
     UNKNOWN = "unknown"
 
 
+class Color(Document):
+    hex: str
+    rgb: RGB
+    oklab: OkLab
+    created_at: datetime = Field(default_factory=datetime.now)
+
+    class Settings:
+        name = "colors"
+        indexes = ["user_id", ("user_id", "hex")]
+
+
 class Reference(Document):
-    id: UUID = Field(default_factory=uuid4)
     type: ReferenceType
     media: MediaKind
     original_name: str
@@ -36,6 +48,8 @@ class Reference(Document):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     description: Optional[str] = None
     thumbnail_url: Optional[str] = None
+    content_type: Optional[str] = None
+    image_analysis: Optional[ImageAnalysis] = None
 
     class Settings:
         name = "references"
