@@ -6,11 +6,13 @@ import os
 load_dotenv()
 
 class Config(BaseSettings):
-    postgres_host: str = "localhost"
-    postgres_port: int = 5432
-    postgres_user: str = "postgres"
-    postgres_password: str = "postgres"
-    postgres_db: str = "app"
+    mongo_uri: str = "mongodb://localhost:27017"
+    mongo_db: str = "app"
+
+    secret_key: str  # NO default — fail-fast if SECRET_KEY missing
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 7
 
     minio_endpoint: str = "http://localhost:9000"
     minio_access_key: str = "minioadmin"
@@ -21,11 +23,6 @@ class Config(BaseSettings):
 
     redis_host: str = "localhost"
     redis_port: int = 6379
-
-    @computed_field
-    @property
-    def database_url(self) -> str:
-        return f"postgres://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
 
     @computed_field
     @property
