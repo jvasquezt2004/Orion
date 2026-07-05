@@ -5,7 +5,7 @@ import asyncio
 from app.core.minio_client import minio_client
 from app.core.config import config
 import os
-from app.models.reference import Reference, MediaKind, ReferenceType
+from app.db.reference import Reference, MediaKind, ReferenceType
 
 
 @broker.task

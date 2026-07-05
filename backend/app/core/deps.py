@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
 from app.core.security import decode_token
-from app.models.user import User
+from app.db.user import User
 
 logger = logging.getLogger(__name__)
 

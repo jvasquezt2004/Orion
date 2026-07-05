@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.core.config import config
-from app.core.database import init_beanie_app
+from app.db.init import init_beanie_app
 from app.core.logging import setup_logging
 from app.api.upload import router as upload_router
 from app.api.auth import router as auth_router

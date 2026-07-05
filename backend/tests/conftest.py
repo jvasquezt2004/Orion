@@ -15,9 +15,9 @@ from mongomock_motor import AsyncMongoMockClient
 from beanie import init_beanie
 import httpx
 
-from app.models.reference import Reference
-from app.models.user import User
-from app.models.token import Token
+from app.db.reference import Reference
+from app.db.user import User
+from app.db.token import Token
 from main import app
 
 

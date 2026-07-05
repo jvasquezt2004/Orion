@@ -10,7 +10,7 @@ Coverage split note (design review warning #5):
 from unittest.mock import patch
 from uuid import uuid4
 
-from app.models.reference import Reference, ReferenceType, MediaKind
+from app.db.reference import Reference, ReferenceType, MediaKind
 from app.workers.process_file import process_file_task
 
 

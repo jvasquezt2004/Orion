@@ -18,9 +18,9 @@ async def init_beanie_app(mongo_uri: str, mongo_db: str) -> AsyncMongoClient:
     await init_beanie(
         database=client[mongo_db],
         document_models=[
-            "app.models.reference",
-            "app.models.user",
-            "app.models.token",
+            "app.db.reference",
+            "app.db.user",
+            "app.db.token",
         ],
     )
     return client

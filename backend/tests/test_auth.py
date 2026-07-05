@@ -19,8 +19,8 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.models.token import Token
-from app.models.user import User
+from app.db.token import Token
+from app.db.user import User
 
 
 # ---------------------------------------------------------------------------

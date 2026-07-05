@@ -2,7 +2,7 @@ from taskiq_redis import RedisStreamBroker
 from taskiq import TaskiqEvents, Context
 from app.core.config import config
 from app.core.minio_client import ensure_bucket
-from app.core.database import init_beanie_app
+from app.db.init import init_beanie_app
 
 broker = RedisStreamBroker(url=config.redis_url)
 
