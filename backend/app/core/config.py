@@ -22,7 +22,7 @@ class Config(BaseSettings):
     @computed_field
     @property
     def redis_url(self) -> str:
-        return f"redis://{self.redis_host}:{self.redis_port}"
+        return f"redis://{self.redis_host}:{self.redis_port}?protocol=2"
 
     class Config:
         env_file = ".env"

@@ -1,11 +1,7 @@
+import asyncio
 import math
-from os.path import exists
-from typing import List, Tuple
-from uuid import uuid4
+from typing import Tuple
 
-import cv2
-from attrs import validate
-from beanie.operators import Eq
 from colorthief import ColorThief
 
 from app.core.config import config
@@ -21,7 +17,7 @@ class ImageServices:
         self.original_name = original_name
         self.stored_name = stored_name
         self.object_path = object_path
-        self.image_analysis: ImageAnalysis
+        self.image_analysis: ImageAnalysis = ImageAnalysis()
 
     def __rgb_to_oklab(
         self, r: float, g: float, b: float
@@ -51,9 +47,12 @@ class ImageServices:
     def __rgb_to_hex(self, r, g, b) -> str:
         return f"#{r:02x}{g:02x}{b:02x}"
 
-    async def __detect_colors(self) -> None:
+    def __extract_palette(self) -> list[tuple[int, int, int]]:
         color_thief = ColorThief(self.img_path)
-        palette = color_thief.get_palette(color_count=5, quality=1)
+        return color_thief.get_palette(color_count=5, quality=1)
+
+    async def __detect_colors(self) -> None:
+        palette = await asyncio.to_thread(self.__extract_palette)
         final_palette = []
         for color in palette:
             validated_color = RGB(r=color[0], g=color[1], b=color[2])
@@ -68,19 +67,30 @@ class ImageServices:
 
             validated_oklab = OkLab(l=l, a=a, b=b)
 
-            existing_color = await Color.find_one(Color.hex == hex_color)
+            existing_color = await Color.find_one(Color.hex_code == hex_color)
 
             if existing_color:
-                return
+                final_palette.append(
+                    ColorPalette(
+                        hex_code=existing_color.hex_code,
+                        rgb=existing_color.rgb,
+                        oklab=existing_color.oklab,
+                    )
+                )
+                continue
 
-            color = Color(hex=hex_color, rgb=validated_color, oklab=validated_oklab)
+            color = Color(
+                hex_code=hex_color, rgb=validated_color, oklab=validated_oklab
+            )
             await color.insert()
 
             final_palette.append(
-                ColorPalette(hex=hex_color, rgb=validated_color, oklab=validated_oklab)
+                ColorPalette(
+                    hex_code=hex_color, rgb=validated_color, oklab=validated_oklab
+                )
             )
 
-            self.image_analysis.color_palette = final_palette
+        self.image_analysis.color_palette = final_palette
 
     async def __save_reference(self) -> None:
         await Reference(

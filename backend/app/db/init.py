@@ -7,7 +7,7 @@ to initialize Beanie with the same set of Document models.
 from pymongo import AsyncMongoClient
 from beanie import init_beanie
 
-from app.db.reference import Reference
+from app.db.reference import Color, Reference
 
 
 async def init_beanie_app(mongo_uri: str, mongo_db: str) -> AsyncMongoClient:
@@ -18,6 +18,6 @@ async def init_beanie_app(mongo_uri: str, mongo_db: str) -> AsyncMongoClient:
     client = AsyncMongoClient(mongo_uri)
     await init_beanie(
         database=client[mongo_db],
-        document_models=[Reference],
+        document_models=[Reference, Color],
     )
     return client

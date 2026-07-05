@@ -20,28 +20,23 @@ async def process_file_task(temp_path: str, original_name: str):
     is_processed = False
 
     try:
-        img = cv2.imread(temp_path)
+        img = await asyncio.to_thread(cv2.imread, temp_path)
 
         if img is not None:
             is_image = True
+
+            await asyncio.to_thread(
+                minio_client.fput_object,
+                config.minio_bucket,
+                object_path,
+                temp_path,
+            )
 
             image_pipeline = ImageServices(
                 temp_path, original_name, stored_name, object_path
             )
 
             await image_pipeline()
-
-            processed_path = f"{temp_path}_analyzed.png"
-
-            await asyncio.to_thread(
-                minio_client.fput_object,
-                config.minio_bucket,
-                object_path,
-                processed_path,
-                content_type="image/png",
-            )
-
-            os.remove(processed_path)
             is_processed = True
         else:
             await asyncio.to_thread(
@@ -52,15 +47,15 @@ async def process_file_task(temp_path: str, original_name: str):
                 content_type="application/octet-stream",
             )
 
-        await Reference(
-            original_name=original_name,
-            stored_name=stored_name,
-            bucket=config.minio_bucket,
-            object_path=object_path,
-            is_processed=is_processed,
-            type=ReferenceType.REFERENCE,
-            media=MediaKind.IMAGE if is_image else MediaKind.UNKNOWN,
-        ).insert()
+            await Reference(
+                original_name=original_name,
+                stored_name=stored_name,
+                bucket=config.minio_bucket,
+                object_path=object_path,
+                is_processed=is_processed,
+                type=ReferenceType.REFERENCE,
+                media=MediaKind.IMAGE if is_image else MediaKind.UNKNOWN,
+            ).insert()
 
     finally:
         if os.path.exists(temp_path):

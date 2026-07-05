@@ -16,7 +16,7 @@ class OkLab(BaseModel):
 
 
 class ColorPalette(BaseModel):
-    hex: str
+    hex_code: str
     rgb: RGB
     oklab: OkLab
 

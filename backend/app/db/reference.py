@@ -27,14 +27,14 @@ class MediaKind(str, Enum):
 
 
 class Color(Document):
-    hex: str
+    hex_code: str
     rgb: RGB
     oklab: OkLab
-    created_at: datetime = Field(default_factory=datetime.now)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     class Settings:
         name = "colors"
-        indexes = ["user_id", ("user_id", "hex")]
+        indexes = ["hex_code"]
 
 
 class Reference(Document):
