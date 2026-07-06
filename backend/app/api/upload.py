@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.workers.process_file import process_file_task
+from app.services.process_file import process_file
 import os
 import tempfile
 
@@ -19,7 +19,7 @@ async def upload_file(
             tmp.write(chunk)
 
     try:
-        task = await process_file_task.kiq(
+        await process_file(
             temp_path=temp_path,
             original_name=file.filename,
             content_type=file.content_type,
@@ -28,11 +28,10 @@ async def upload_file(
         if os.path.exists(temp_path):
             os.remove(temp_path)
         raise HTTPException(
-            status_code=503, detail="Failed to queue file for processing"
+            status_code=500, detail="Failed to process file"
         )
 
     return {
-        "task_id": task.task_id,
         "filename": file.filename,
-        "status": "processing"
+        "status": "done",
     }

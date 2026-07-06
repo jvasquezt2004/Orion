@@ -9,13 +9,11 @@ from app.core.config import config
 from app.core.minio_client import minio_client
 from app.db.reference import MediaKind, Reference, ReferenceType
 from app.services.image_services import ImageServices
-from app.workers.config import broker
 
 logger = logging.getLogger(__name__)
 
 
-@broker.task
-async def process_file_task(
+async def process_file(
     temp_path: str, original_name: str, content_type: str | None = None
 ):
     stored_name = f"{uuid4().hex}_{original_name}"

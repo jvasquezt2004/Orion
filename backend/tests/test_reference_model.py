@@ -1,8 +1,8 @@
 """Tests for the Beanie Reference Document (reference-storage spec).
 
 Coverage split note (design review warning #5):
-- MinIO is mocked here (fput_object) — we test the worker-only insert path.
-- process_file_task.kiq is mocked in test_upload.py — we test the upload path.
+- MinIO is mocked here (fput_object) — we test the service-only insert path.
+- process_file is mocked in test_upload.py — we test the upload path.
 - No single unmocked E2E test covers both. A real-container smoke test is a
   documented follow-up (open item).
 """
@@ -12,7 +12,7 @@ from unittest.mock import patch
 from beanie import PydanticObjectId
 
 from app.db.reference import Reference, ReferenceType, MediaKind
-from app.workers.process_file import process_file_task
+from app.services.process_file import process_file
 
 
 async def test_insert_and_retrieve_all_fields(mongo):
@@ -53,8 +53,8 @@ async def test_unknown_id_returns_none(mongo):
     assert result is None
 
 
-async def test_process_file_task_inserts_reference(mongo, tmp_path):
-    """Direct process_file_task invocation with mocked MinIO inserts a Reference.
+async def test_process_file_inserts_reference(mongo, tmp_path):
+    """Direct process_file invocation with mocked MinIO inserts a Reference.
 
     Mocks minio_client.fput_object to avoid real object storage.
     """
@@ -62,11 +62,11 @@ async def test_process_file_task_inserts_reference(mongo, tmp_path):
     dummy_file = tmp_path / "test_image.png"
     dummy_file.write_bytes(b"not a real image")
 
-    with patch("app.workers.process_file.minio_client") as mock_minio:
+    with patch("app.services.process_file.minio_client") as mock_minio:
         mock_minio.fput_object.return_value = None
         mock_minio.bucket_exists.return_value = True
 
-        await process_file_task(
+        await process_file(
             temp_path=str(dummy_file),
             original_name="test_image.png",
         )

@@ -1,7 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import computed_field
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
@@ -17,13 +15,5 @@ class Config(BaseSettings):
     minio_bucket: str = "app-bucket"
     minio_use_ssl: bool = False
     minio_public_url: str | None = None
-
-    redis_host: str = "localhost"
-    redis_port: int = 6379
-
-    @computed_field
-    @property
-    def redis_url(self) -> str:
-        return f"redis://{self.redis_host}:{self.redis_port}?protocol=2"
 
 config = Config()

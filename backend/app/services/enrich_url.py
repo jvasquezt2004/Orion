@@ -13,7 +13,6 @@ from app.core.config import config
 from app.core.minio_client import minio_client
 from app.db.reference import MediaKind, Reference, ReferenceType
 from app.services.image_services import ImageServices
-from app.workers.config import broker
 
 logger = logging.getLogger(__name__)
 
@@ -155,8 +154,7 @@ def _http_client() -> httpx.AsyncClient:
     )
 
 
-@broker.task
-async def enrich_url_task(reference_id: str, original_url: str):
+async def enrich_url(reference_id: str, original_url: str):
     ref = await Reference.get(reference_id)
     if not ref:
         return

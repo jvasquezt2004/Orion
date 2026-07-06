@@ -14,8 +14,6 @@ dependencies = [
     "opencv-python>=4.13.0.92",
     "python-dotenv>=1.2.2",
     "scipy>=1.18.0",
-    "taskiq>=0.12.4",
-    "taskiq-redis>=1.2.3",
     "tzdata>=2026.2",
 ]
 

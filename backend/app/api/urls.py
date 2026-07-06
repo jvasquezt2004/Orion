@@ -1,7 +1,7 @@
 from pydantic import BaseModel, HttpUrl
 from fastapi import APIRouter
 from app.db.reference import MediaKind, Reference, ReferenceType
-from app.workers.enrich_url import enrich_url_task
+from app.services.enrich_url import enrich_url
 
 router = APIRouter()
 
@@ -25,9 +25,9 @@ async def create_url(data: CreateUrlRequest):
         is_processed=False,
     ).insert()
 
-    await enrich_url_task.kiq(
+    await enrich_url(
         reference_id=str(ref.id),
         original_url=original_url,
     )
 
-    return {"id": str(ref.id), "status": "pending"}
+    return {"id": str(ref.id), "status": "done"}

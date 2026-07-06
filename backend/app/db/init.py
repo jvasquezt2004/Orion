@@ -1,7 +1,6 @@
-"""Shared Beanie initialization helper.
+"""Beanie initialization helper.
 
-Used by both the FastAPI lifespan and the Taskiq worker startup
-to initialize Beanie with the same set of Document models.
+Initializes Beanie with the MongoDB connection and document models.
 """
 
 import logging
