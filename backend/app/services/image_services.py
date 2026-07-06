@@ -2,6 +2,9 @@ import asyncio
 import math
 from typing import Tuple
 
+import colour
+import cv2
+import numpy as np
 from colorthief import ColorThief
 
 from app.core.config import config
@@ -49,7 +52,7 @@ class ImageServices:
 
     def __extract_palette(self) -> list[tuple[int, int, int]]:
         color_thief = ColorThief(self.img_path)
-        return color_thief.get_palette(color_count=5, quality=1)
+        return color_thief.get_palette(color_count=5, quality=10)
 
     async def __detect_colors(self) -> None:
         palette = await asyncio.to_thread(self.__extract_palette)
@@ -92,6 +95,29 @@ class ImageServices:
 
         self.image_analysis.color_palette = final_palette
 
+    def __classify_image_temperature(self) -> None:
+        self.classification: str = ""
+        bgr_image = cv2.imread(self.img_path)
+        if bgr_image is None:
+            raise FileNotFoundError(f"Could not read image: {self.img_path}")
+        rgb_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
+
+        avg_rgb = np.mean(rgb_image, axis=(0, 1)) / 255.0
+
+        XYZ = colour.sRGB_to_XYZ(avg_rgb)
+
+        cct, _ = colour.temperature.XYZ_to_CCT_Ohno2013(XYZ)
+
+        if cct < 5000:
+            classification = "Warm"
+        elif cct <= 6500:
+            classification = "Neutral"
+        else:
+            classification = "Cold"
+
+        self.image_analysis.kelvin_value = cct
+        self.image_analysis.temperature = classification
+
     async def __save_reference(self) -> None:
         await Reference(
             original_name=self.original_name,
@@ -106,4 +132,5 @@ class ImageServices:
 
     async def __call__(self) -> None:
         await self.__detect_colors()
+        self.__classify_image_temperature()
         await self.__save_reference()

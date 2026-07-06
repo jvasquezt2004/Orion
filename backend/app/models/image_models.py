@@ -24,5 +24,6 @@ class ColorPalette(BaseModel):
 class ImageAnalysis(BaseModel):
     color_palette: List[ColorPalette] = []
     mean_luminance: Optional[float] = None
-    temperature: Optional[str] = None
+    kelvin_value: float = 0.0
+    temperature: str = ""
     visual_density: Optional[str] = None
