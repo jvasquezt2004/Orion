@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Optional
-from uuid import UUID, uuid4
 
 import pymongo
 from beanie import Document
@@ -34,7 +33,13 @@ class Color(Document):
 
     class Settings:
         name = "colors"
-        indexes = ["hex_code"]
+        indexes = [
+            IndexModel(
+                [("hex_code", pymongo.ASCENDING)],
+                name="hex_code_unique_idx",
+                unique=True,
+            )
+        ]
 
 
 class Reference(Document):
@@ -47,8 +52,13 @@ class Reference(Document):
     is_processed: bool = False
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     description: Optional[str] = None
+    title: Optional[str] = None
     thumbnail_url: Optional[str] = None
     content_type: Optional[str] = None
+    original_url: Optional[str] = None
+    final_url: Optional[str] = None
+    provider: Optional[str] = None
+    embed_url: Optional[str] = None
     image_analysis: Optional[ImageAnalysis] = None
 
     class Settings:

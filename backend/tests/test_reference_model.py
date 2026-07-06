@@ -8,7 +8,8 @@ Coverage split note (design review warning #5):
 """
 
 from unittest.mock import patch
-from uuid import uuid4
+
+from beanie import PydanticObjectId
 
 from app.db.reference import Reference, ReferenceType, MediaKind
 from app.workers.process_file import process_file_task
@@ -48,7 +49,7 @@ async def test_insert_and_retrieve_all_fields(mongo):
 
 async def test_unknown_id_returns_none(mongo):
     """Looking up a non-existent id returns None (not raise)."""
-    result = await Reference.get(uuid4())
+    result = await Reference.get(PydanticObjectId())
     assert result is None
 
 
@@ -82,25 +83,28 @@ async def test_process_file_task_inserts_reference(mongo, tmp_path):
     assert ref.is_processed is False
 
 
-async def test_uuid_pk_round_trips_through_bson(mongo):
-    """UUID primary key survives a full BSON encode/decode round-trip.
+async def test_pk_round_trips_through_bson(mongo):
+    """PydanticObjectId primary key survives a full BSON insert+fetch round-trip.
 
-    This was an open question (design OQ-3): pymongo's native UUID encoding
-    vs manual bson_encoders. Confirmed: no bson_encoders needed — the UUID
-    pk round-trips cleanly.
+    Note: this test predates the Tortoise→Beanie migration and originally
+    asserted a UUID pk. Reference uses Beanie's default PydanticObjectId pk
+    (matching the ObjectId _ids already stored in the live database).
     """
     ref = Reference(
         type=ReferenceType.REFERENCE,
         media=MediaKind.IMAGE,
-        original_name="uuid_test.jpg",
-        stored_name="uuid_test.jpg",
+        original_name="pk_test.jpg",
+        stored_name="pk_test.jpg",
         bucket="app-bucket",
-        object_path="uploads/uuid_test.jpg",
+        object_path="uploads/pk_test.jpg",
     )
-    original_id = ref.id
     await ref.insert()
+
+    original_id = ref.id
+    assert original_id is not None
+    assert isinstance(original_id, PydanticObjectId)
 
     retrieved = await Reference.get(original_id)
     assert retrieved is not None
     assert retrieved.id == original_id
-    assert isinstance(retrieved.id, type(original_id))
+    assert isinstance(retrieved.id, PydanticObjectId)

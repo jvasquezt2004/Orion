@@ -9,6 +9,7 @@ dependencies = [
     "colorthief>=0.2.1",
     "colour-science>=0.4.7",
     "fastapi[standard]>=0.138.2",
+    "httpx>=0.27",
     "minio>=7.2.20",
     "opencv-python>=4.13.0.92",
     "python-dotenv>=1.2.2",

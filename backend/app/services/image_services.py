@@ -1,25 +1,37 @@
 import asyncio
+import logging
 import math
 from typing import Tuple
 
 import colour
 import cv2
 import numpy as np
+import pymongo
 from colorthief import ColorThief
 
 from app.core.config import config
 from app.db.reference import Color, MediaKind, Reference, ReferenceType
 from app.models.image_models import RGB, ColorPalette, ImageAnalysis, OkLab
 
+logger = logging.getLogger(__name__)
+
 
 class ImageServices:
     def __init__(
-        self, img_path: str, original_name: str, stored_name: str, object_path: str
+        self,
+        img_path: str,
+        original_name: str,
+        stored_name: str,
+        object_path: str,
+        content_type: str | None = None,
+        reference: Reference | None = None,
     ) -> None:
         self.img_path = img_path
         self.original_name = original_name
         self.stored_name = stored_name
         self.object_path = object_path
+        self.content_type = content_type
+        self.reference = reference
         self.image_analysis: ImageAnalysis = ImageAnalysis()
 
     def __rgb_to_oklab(
@@ -85,11 +97,16 @@ class ImageServices:
             color = Color(
                 hex_code=hex_color, rgb=validated_color, oklab=validated_oklab
             )
-            await color.insert()
+            try:
+                await color.insert()
+            except pymongo.errors.DuplicateKeyError:
+                # Another task inserted the same hex_code between our find and
+                # our insert — re-fetch instead of failing.
+                color = await Color.find_one(Color.hex_code == hex_color)
 
             final_palette.append(
                 ColorPalette(
-                    hex_code=hex_color, rgb=validated_color, oklab=validated_oklab
+                    hex_code=color.hex_code, rgb=color.rgb, oklab=color.oklab
                 )
             )
 
@@ -119,6 +136,18 @@ class ImageServices:
         self.image_analysis.temperature = classification
 
     async def __save_reference(self) -> None:
+        if self.reference is not None:
+            # Enrich the existing placeholder instead of inserting a duplicate.
+            self.reference.stored_name = self.stored_name
+            self.reference.bucket = config.minio_bucket
+            self.reference.object_path = self.object_path
+            self.reference.media = MediaKind.IMAGE
+            self.reference.content_type = self.content_type
+            self.reference.image_analysis = self.image_analysis
+            self.reference.is_processed = True
+            await self.reference.save()
+            return
+
         await Reference(
             original_name=self.original_name,
             stored_name=self.stored_name,
@@ -127,6 +156,7 @@ class ImageServices:
             is_processed=True,
             type=ReferenceType.REFERENCE,
             media=MediaKind.IMAGE,
+            content_type=self.content_type,
             image_analysis=self.image_analysis,
         ).insert()
 

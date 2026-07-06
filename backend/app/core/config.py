@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import computed_field
 from dotenv import load_dotenv
 import os
@@ -6,10 +6,12 @@ import os
 load_dotenv()
 
 class Config(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
     mongo_uri: str = "mongodb://localhost:27017"
     mongo_db: str = "app"
 
-    minio_endpoint: str = "http://localhost:9000"
+    minio_endpoint: str = "localhost:9000"
     minio_access_key: str = "minioadmin"
     minio_secret_key: str = "minioadmin"
     minio_bucket: str = "app-bucket"
@@ -23,9 +25,5 @@ class Config(BaseSettings):
     @property
     def redis_url(self) -> str:
         return f"redis://{self.redis_host}:{self.redis_port}?protocol=2"
-
-    class Config:
-        env_file = ".env"
-        extra = "allow"
 
 config = Config()
